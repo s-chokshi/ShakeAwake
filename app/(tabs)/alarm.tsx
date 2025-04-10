@@ -7,6 +7,8 @@ const Alarm = () => {
   const [show, setShow] = useState(false);
   const [isAlarmSet, setIsAlarmSet] = useState(false); 
   const [buttonColor, setButtonColor] = useState('#b8c9d6'); 
+  const [isSnoozed, setIsSnoozed] = useState(false);
+  const [snoozeColor, setSnoozeColor] = useState('#b8c9d6');
 
   //time picker
   const onChange = (_event: any, selectedTime?: Date) => {
@@ -48,6 +50,14 @@ const Alarm = () => {
     }
   };
 
+  //snooze 
+  const toggleSnooze = async () => {
+    const newSnoozeState = !isSnoozed;
+    setIsSnoozed(newSnoozeState);
+    setSnoozeColor(newSnoozeState ? '#68bbe3' : '#b8c9d6');
+    await sendRequest('field4', newSnoozeState ? 1 : 0);
+  };
+
   return (
     <View style={styles.container}>
       <Button title="Select Time" onPress={() => setShow(true)} />
@@ -59,8 +69,10 @@ const Alarm = () => {
           onChange={onChange}
         />
       )}
+
       <Text style={styles.text}>Selected Time: {time.toLocaleTimeString([], 
-        { hour: '2-digit', minute: '2-digit' })}</Text>
+        { hour: '2-digit', minute: '2-digit' })}
+      </Text>
 
       <TouchableOpacity
         onPress={toggleAlarm}
@@ -72,6 +84,26 @@ const Alarm = () => {
         <Text style={styles.buttonText}>
           {isAlarmSet ? 'Alarm Set' : 'Set Alarm'} 
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={toggleSnooze}
+        style={[styles.snoozeButton, { backgroundColor: snoozeColor }]}
+      >
+        <Text style={styles.buttonText}>
+          {isSnoozed ? 'Snoozed' : 'Snooze'}
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        onPress={() => {
+          setIsSnoozed(false);
+          setSnoozeColor('#b8c9d6');
+          sendRequest('field4', 0);
+        }}
+        style={styles.cancelButton}
+      >
+        <Text style={styles.buttonText}>Cancel</Text>
       </TouchableOpacity>
     </View>
   );
@@ -95,6 +127,19 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 20,
   },
+  snoozeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  cancelButton: {
+  paddingVertical: 10,
+  paddingHorizontal: 15,
+  borderRadius: 5,
+  backgroundColor: 'red',
+  marginTop: 10,
+},
   buttonText: {
     color: 'white',
     fontSize: 18,
