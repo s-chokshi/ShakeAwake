@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { sendRequest } from '../../utils/api'
 
 const Alarm = () => {
   const [time, setTime] = useState(new Date());
   const [show, setShow] = useState(false);
   const [isAlarmSet, setIsAlarmSet] = useState(false); 
   const [buttonColor, setButtonColor] = useState('#b8c9d6'); 
-  const [isSnoozed, setIsSnoozed] = useState(false);
+  const [snoozeState, setSnoozeState] = useState(0);
   const [snoozeColor, setSnoozeColor] = useState('#b8c9d6');
+  const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
   //time picker
   const onChange = (_event: any, selectedTime?: Date) => {
@@ -18,24 +20,7 @@ const Alarm = () => {
     setShow(false); 
   };
 
-  //api request (send data)
-  const API_KEY = '0MJJMI1MBH6UVIA3';
-  const BASE_URL = 'https://api.thingspeak.com/update';
-  const sendRequest = async (fieldName: string, fieldValue: number) => {
-    try {
-      const url = `${BASE_URL}?api_key=${API_KEY}&${fieldName}=${fieldValue}`;
-      console.log('Sending request to:', url);
-  
-      const response = await fetch(url);
-      const data = await response.text();
-      console.log('API Response:', data);
-    } catch (error) {
-      console.error('Error sending request:', error);
-    }
-  };
-
   //alarm on/off
-  const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
   const toggleAlarm = async () => {
     const newAlarmState = !isAlarmSet
     setIsAlarmSet(newAlarmState); 
@@ -52,10 +37,18 @@ const Alarm = () => {
 
   //snooze 
   const toggleSnooze = async () => {
-    const newSnoozeState = !isSnoozed;
-    setIsSnoozed(newSnoozeState);
-    setSnoozeColor(newSnoozeState ? '#68bbe3' : '#b8c9d6');
-    await sendRequest('field4', newSnoozeState ? 1 : 0);
+    const newSnoozeState = snoozeState < 2 ? 2 : snoozeState + 1;
+    setSnoozeState(newSnoozeState);
+    setSnoozeColor(newSnoozeState >= 2 ? '#68bbe3' : '#b8c9d6');
+    await sendRequest('field4', newSnoozeState);
+  };
+
+  //stop 
+  const toggleStop = async () => {
+    await sendRequest('field4', 1);
+    setSnoozeColor('#b8c9d6');
+    await delay(15000);
+    await sendRequest('field4', 0);
   };
 
   return (
@@ -91,19 +84,15 @@ const Alarm = () => {
         style={[styles.snoozeButton, { backgroundColor: snoozeColor }]}
       >
         <Text style={styles.buttonText}>
-          {isSnoozed ? 'Snoozed' : 'Snooze'}
+          {snoozeState >= 2 ? 'Snoozed' : 'Snooze'}
         </Text>
       </TouchableOpacity>
       
       <TouchableOpacity
-        onPress={() => {
-          setIsSnoozed(false);
-          setSnoozeColor('#b8c9d6');
-          sendRequest('field4', 0);
-        }}
+        onPress={toggleStop}
         style={styles.cancelButton}
       >
-        <Text style={styles.buttonText}>Cancel</Text>
+        <Text style={styles.buttonText}>Stop</Text>
       </TouchableOpacity>
     </View>
   );
