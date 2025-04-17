@@ -65,7 +65,7 @@ const Settings = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={[styles.box, styles.boxTwo]}>
+      <View style={[styles.box, styles.box]}>
         <Text style={styles.boxTitle}>Vibration Pattern</Text>
         <View style={styles.buttonsContainer}>
         <TouchableOpacity
@@ -130,9 +130,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 10,
   },
-  boxTwo: {
-    backgroundColor: '#EAEAEA', //light grey
-  },
+
   boxTitle: {
     fontSize: 18,
     fontWeight: 'bold',
