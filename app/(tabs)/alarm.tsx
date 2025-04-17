@@ -9,7 +9,7 @@ const Alarm = () => {
   const [isAlarmSet, setIsAlarmSet] = useState(false); 
   const [buttonColor, setButtonColor] = useState('#b8c9d6'); 
   const [snoozeState, setSnoozeState] = useState(0);
-  const [snoozeColor, setSnoozeColor] = useState('#b8c9d6');
+  const [snoozeColor, setSnoozeColor] = useState('#68bbe3');
   const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
   //time picker
@@ -37,16 +37,16 @@ const Alarm = () => {
 
   //snooze 
   const toggleSnooze = async () => {
-    const newSnoozeState = snoozeState < 2 ? 2 : snoozeState + 1;
+    const newSnoozeState = snoozeState < 2 ? 100 : snoozeState + 1;
     setSnoozeState(newSnoozeState);
-    setSnoozeColor(newSnoozeState >= 2 ? '#68bbe3' : '#b8c9d6');
+    //setSnoozeColor(newSnoozeState >= 2 ? '#68bbe3' : '#b8c9d6');
     await sendRequest('field4', newSnoozeState);
   };
 
   //stop 
   const toggleStop = async () => {
     await sendRequest('field4', 1);
-    setSnoozeColor('#b8c9d6');
+    //setSnoozeColor('#b8c9d6');
     await delay(15000);
     await sendRequest('field4', 0);
   };
@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 5,
     marginTop: 10,
+    backgroundColor: '#68bbe3',
   },
   cancelButton: {
   paddingVertical: 10,
