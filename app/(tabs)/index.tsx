@@ -1,74 +1,143 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { readRequest } from '../../utils/api';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const HomeScreen = () => {
+  const [batteryHealth, setBatteryHealth] = useState(0);
+  const [deviceConnected, setDeviceConnected] = useState(false);
+  const [chargingStationConnected, setChargingStationConnected] = useState(false);
 
-export default function HomeScreen() {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await readRequest();
+
+        if (data) {
+          setBatteryHealth(data.field2 !== null ? Number(data.field2) : 0);
+          setDeviceConnected(data.field3 === '1');
+          setChargingStationConnected(data.field4 === '1');
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData(); // run immediately
+    const interval = setInterval(fetchData, 1000); //1 sec
+
+    return () => clearInterval(interval); // cleanup on unmount
+  }, []);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">ShakeAwake!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome to Shake Awake!</Text>
+
+      <View style={styles.statusContainer}>
+        <StatusCard label="Device" connected={deviceConnected} />
+        <StatusCard label="Charging Station" connected={chargingStationConnected} />
+      </View>
+
+      <View style={styles.batteryCardContainer}>
+        <BatteryCard batteryLevel={batteryHealth} />
+      </View>
+    </View>
   );
-}
+};
+
+//device/charging station card
+const StatusCard = ({ label, connected }: { label: string; connected: boolean }) => {
+  return (
+    <View style={styles.card}>
+      <Ionicons
+        name={connected ? 'checkmark-circle' : 'close-circle'}
+        size={40}
+        color={connected ? 'green' : 'red'}
+      />
+      <Text style={styles.cardLabel}>{label}</Text>
+      <Text style={styles.connectionStatus}>
+        {connected ? 'Connected' : 'Not Connected'}
+      </Text>
+    </View>
+  );
+};
+
+//battery level card
+const BatteryCard = ({ batteryLevel }: { batteryLevel: number }) => {
+  return (
+    <View style={styles.batteryCard}>
+      <Text style={styles.batteryLabel}>Battery Level: {batteryLevel}% </Text>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'flex-start',
+    paddingTop: 80,
+    marginTop: '5%',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 40,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  statusContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '90%',
+    flexWrap: 'wrap',
+    gap: 20,
   },
+  card: {
+    alignItems: 'center',
+    backgroundColor: '#f3f3f3',
+    borderRadius: 12,
+    padding: 20,
+    width: 160,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  cardLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 10,
+  },
+  connectionStatus: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 4,
+  },
+  batteryCardContainer: {
+    width: '100%',
+    height: 125,
+    justifyContent: 'center', 
+    padding: 20,
+    marginTop: 5,
+  },
+  batteryCard: {
+    backgroundColor: '#f3f3f3',
+    borderRadius: 12,
+    padding: 30,
+    width: '100%',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    justifyContent: 'center', 
+    alignItems: 'center',
+    height: '100%', 
+  },
+  batteryLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  }
 });
+
+export default HomeScreen;
