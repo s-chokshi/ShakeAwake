@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { readRequest } from '../../utils/api';
+import { useAlert } from '../../utils/noise_alert';
+import CalendarEvents from '../../utils/calendar';
 
 const HomeScreen = () => {
+  const { showNoiseAlert } = useAlert();
+  const [noiseDetected, setNoiseDetected] = useState(false);
   const [batteryHealth, setBatteryHealth] = useState(0);
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [chargingStationConnected, setChargingStationConnected] = useState(false);
@@ -14,6 +18,7 @@ const HomeScreen = () => {
         const data = await readRequest();
 
         if (data) {
+          setNoiseDetected(data.field1 == '1');
           setBatteryHealth(data.field2 !== null ? Number(data.field2) : 0);
           setDeviceConnected(data.field3 === '1');
           setChargingStationConnected(data.field4 === '1');
@@ -29,6 +34,12 @@ const HomeScreen = () => {
     return () => clearInterval(interval); // cleanup on unmount
   }, []);
 
+  useEffect(() => {
+    if (noiseDetected) {
+      showNoiseAlert();
+    }
+  }, [noiseDetected]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Shake Awake!</Text>
@@ -41,6 +52,8 @@ const HomeScreen = () => {
       <View style={styles.batteryCardContainer}>
         <BatteryCard batteryLevel={batteryHealth} />
       </View>
+
+      <CalendarEvents />
     </View>
   );
 };
@@ -83,7 +96,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -118,7 +131,7 @@ const styles = StyleSheet.create({
     height: 125,
     justifyContent: 'center', 
     padding: 20,
-    marginTop: 5,
+    marginTop: 3,
   },
   batteryCard: {
     backgroundColor: '#f3f3f3',
