@@ -19,7 +19,7 @@ const HomeScreen = () => {
 
         if (data) {
           setNoiseDetected(data.field1 == '1');
-          setBatteryHealth(data.field2 !== null ? Number(data.field2) : 0);
+          setBatteryHealth(data.field2 !== null ? Math.round(Number(data.field2)) : 0);
           setDeviceConnected(data.field3 === '1');
           setChargingStationConnected(data.field4 === '1');
         }
