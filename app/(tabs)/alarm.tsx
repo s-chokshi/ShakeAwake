@@ -84,7 +84,7 @@ const Alarm = () => {
         style={[styles.snoozeButton, { backgroundColor: snoozeColor }]}
       >
         <Text style={styles.buttonText}>
-          {snoozeState >= 2 ? 'Snoozed' : 'Snooze'}
+          {snoozeState >= 2 ? 'Snooze' : 'Snooze'}
         </Text>
       </TouchableOpacity>
       
